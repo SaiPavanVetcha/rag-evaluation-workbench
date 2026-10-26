@@ -11,6 +11,43 @@ import {
   Info
 } from 'lucide-react'
 
+// Circular progress indicator component for metric cards
+function MetricCircleIndicator({ value, colorClass }) {
+  const radius = 14
+  const circumference = 2 * Math.PI * radius
+  const clampedValue = Math.min(1, Math.max(0, value))
+  const strokeDashoffset = circumference - (clampedValue * circumference)
+
+  return (
+    <div className="relative w-9 h-9 flex-shrink-0 flex items-center justify-center">
+      <svg className="w-9 h-9 -rotate-90 transform" viewBox="0 0 36 36">
+        <circle
+          cx="18"
+          cy="18"
+          r={radius}
+          className="stroke-slate-800"
+          strokeWidth="3.5"
+          fill="none"
+        />
+        <circle
+          cx="18"
+          cy="18"
+          r={radius}
+          className={`${colorClass} transition-all duration-700 ease-out`}
+          strokeWidth="3.5"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          fill="none"
+        />
+      </svg>
+      <span className="absolute text-[9px] font-mono font-bold text-slate-300">
+        {Math.round(clampedValue * 100)}
+      </span>
+    </div>
+  )
+}
+
 export default function MetricCards({ result }) {
   if (!result || !result.metrics) return null
 
@@ -31,34 +68,38 @@ export default function MetricCards({ result }) {
       case 'A+':
       case 'A':
         return {
-          bg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
-          badge: 'bg-emerald-500 text-slate-950 font-bold',
-          bar: 'bg-emerald-500',
-          ring: 'text-emerald-500',
+          bg: 'bg-emerald-950/20 border-emerald-500/40 text-emerald-400',
+          badge: 'bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-400 text-slate-950 font-black shadow-lg shadow-emerald-500/30',
+          bar: 'from-emerald-500 to-teal-400',
+          glow: 'glow-card-green',
+          accent: 'text-emerald-400',
           icon: CheckCircle2
         }
       case 'B':
         return {
-          bg: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
-          badge: 'bg-blue-500 text-white font-bold',
-          bar: 'bg-blue-500',
-          ring: 'text-blue-500',
+          bg: 'bg-blue-950/20 border-blue-500/40 text-blue-400',
+          badge: 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-black shadow-lg shadow-blue-500/30',
+          bar: 'from-blue-500 to-indigo-400',
+          glow: 'glow-card',
+          accent: 'text-blue-400',
           icon: CheckCircle2
         }
       case 'C':
         return {
-          bg: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
-          badge: 'bg-amber-500 text-slate-950 font-bold',
-          bar: 'bg-amber-500',
-          ring: 'text-amber-500',
+          bg: 'bg-amber-950/20 border-amber-500/40 text-amber-400',
+          badge: 'bg-gradient-to-r from-amber-400 via-amber-500 to-orange-400 text-slate-950 font-black shadow-lg shadow-amber-500/30',
+          bar: 'from-amber-500 to-yellow-400',
+          glow: 'glow-card-amber',
+          accent: 'text-amber-400',
           icon: AlertTriangle
         }
       default:
         return {
-          bg: 'bg-red-500/10 border-red-500/30 text-red-400',
-          badge: 'bg-red-500 text-white font-bold',
-          bar: 'bg-red-500',
-          ring: 'text-red-500',
+          bg: 'bg-red-950/25 border-red-500/50 text-red-400',
+          badge: 'bg-gradient-to-r from-red-600 via-rose-500 to-red-500 text-white font-black shadow-lg shadow-red-500/30',
+          bar: 'from-red-600 to-rose-400',
+          glow: 'glow-card-red',
+          accent: 'text-red-400',
           icon: XCircle
         }
     }
@@ -70,42 +111,46 @@ export default function MetricCards({ result }) {
   return (
     <div className="space-y-6">
       {/* Overall Score Hero Card */}
-      <div className={`p-6 rounded-2xl border backdrop-blur-sm transition-all duration-300 ${gradeStyle.bg} glow-card`}>
+      <div className={`p-6 sm:p-7 rounded-2xl border backdrop-blur-md transition-all duration-300 ${gradeStyle.bg} ${gradeStyle.glow}`}>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="relative flex items-center justify-center w-20 h-20 rounded-2xl bg-slate-900/80 border border-slate-700/50 shadow-inner">
-              <span className="text-3xl font-extrabold tracking-tight font-mono">
+          <div className="flex items-center gap-6">
+            {/* Prominent Overall Score Badge with Gradient Pill */}
+            <div className="relative flex flex-col items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-slate-900/90 border-2 border-slate-700/80 shadow-2xl flex-shrink-0">
+              <span className="text-3xl sm:text-4xl font-black tracking-tight font-mono text-white">
                 {Math.round(overall_score * 100)}%
               </span>
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-0.5">
+                Overall Score
+              </span>
               <div
-                className={`absolute -top-2 -right-2 px-2.5 py-0.5 rounded-full text-xs uppercase tracking-wider shadow-lg ${gradeStyle.badge}`}
+                className={`absolute -top-3 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${gradeStyle.badge}`}
               >
                 Grade {grade}
               </div>
             </div>
 
-            <div>
+            <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <GradeIcon className="w-5 h-5" />
-                <h3 className="text-xl font-bold tracking-tight text-slate-100">
+                <GradeIcon className={`w-5 h-5 ${gradeStyle.accent}`} />
+                <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-100">
                   Overall Evaluation Benchmark
                 </h3>
               </div>
-              <p className="mt-1 text-sm text-slate-300 max-w-2xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
                 {verdict}
               </p>
-              <div className="mt-2 text-xs font-mono text-slate-400 flex items-center gap-2 flex-wrap">
-                <span className="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 text-slate-300">
+              <div className="pt-1 text-xs font-mono text-slate-400 flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800 text-slate-300 text-[11px]">
                   Formula: 0.25·Recall + 0.20·Precision + 0.35·Faithfulness + 0.20·Citation
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-slate-800">
+          <div className="flex md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-slate-800/80">
             <div className="text-left md:text-right">
               <span className="text-xs uppercase tracking-wider text-slate-400 block font-medium">Pipeline Status</span>
-              <span className={`text-base font-semibold ${overall_score >= 0.8 ? 'text-emerald-400' : overall_score >= 0.5 ? 'text-amber-400' : 'text-red-400'}`}>
+              <span className={`text-sm sm:text-base font-bold ${overall_score >= 0.8 ? 'text-emerald-400' : overall_score >= 0.5 ? 'text-amber-400' : 'text-red-400'}`}>
                 {overall_score >= 0.8 ? 'PASSED / HIGH FIDELITY' : overall_score >= 0.5 ? 'WARNING / DRIFT DETECTED' : 'FAILED / CRITICAL DRIFT'}
               </span>
             </div>
@@ -122,24 +167,27 @@ export default function MetricCards({ result }) {
               <Layers className="w-4 h-4 text-indigo-400" />
               Context Recall
             </span>
-            <span className="text-xs px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-mono border border-indigo-500/20">
+            <span className="text-[11px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-mono border border-indigo-500/20 font-semibold">
               Weight 25%
             </span>
           </div>
 
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="text-3xl font-extrabold text-slate-100 font-mono tracking-tight">
-              {(context_recall * 100).toFixed(1)}%
-            </span>
-            <span className="text-xs text-slate-400">
-              {details.context_recall.matched_tokens_count}/{details.context_recall.gt_tokens_count} GT Tokens
-            </span>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <span className="text-3xl font-extrabold text-slate-100 font-mono tracking-tight block">
+                {(context_recall * 100).toFixed(1)}%
+              </span>
+              <span className="text-[11px] text-slate-400">
+                {details.context_recall.matched_tokens_count}/{details.context_recall.gt_tokens_count} GT Tokens
+              </span>
+            </div>
+            <MetricCircleIndicator value={context_recall} colorClass="stroke-indigo-400" />
           </div>
 
-          {/* Progress bar */}
-          <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-3">
+          {/* Subtle Progress Bar */}
+          <div className="w-full bg-slate-950/80 p-0.5 border border-slate-800 rounded-full h-2.5 mb-2.5 overflow-hidden">
             <div
-              className="bg-indigo-500 h-full rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full rounded-full transition-all duration-700 ease-out shadow-sm shadow-indigo-500/20"
               style={{ width: `${Math.min(100, Math.max(0, context_recall * 100))}%` }}
             />
           </div>
@@ -156,24 +204,27 @@ export default function MetricCards({ result }) {
               <Target className="w-4 h-4 text-cyan-400" />
               Context Precision
             </span>
-            <span className="text-xs px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 font-mono border border-cyan-500/20">
+            <span className="text-[11px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 font-mono border border-cyan-500/20 font-semibold">
               Weight 20%
             </span>
           </div>
 
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="text-3xl font-extrabold text-slate-100 font-mono tracking-tight">
-              {(context_precision * 100).toFixed(1)}%
-            </span>
-            <span className="text-xs text-slate-400">
-              {details.context_precision.relevant_chunks}/{details.context_precision.total_chunks} Relevant Chunks
-            </span>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <span className="text-3xl font-extrabold text-slate-100 font-mono tracking-tight block">
+                {(context_precision * 100).toFixed(1)}%
+              </span>
+              <span className="text-[11px] text-slate-400">
+                {details.context_precision.relevant_chunks}/{details.context_precision.total_chunks} Relevant Chunks
+              </span>
+            </div>
+            <MetricCircleIndicator value={context_precision} colorClass="stroke-cyan-400" />
           </div>
 
-          {/* Progress bar */}
-          <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-3">
+          {/* Subtle Progress Bar */}
+          <div className="w-full bg-slate-950/80 p-0.5 border border-slate-800 rounded-full h-2.5 mb-2.5 overflow-hidden">
             <div
-              className="bg-cyan-500 h-full rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-cyan-600 to-cyan-400 h-full rounded-full transition-all duration-700 ease-out shadow-sm shadow-cyan-500/20"
               style={{ width: `${Math.min(100, Math.max(0, context_precision * 100))}%` }}
             />
           </div>
@@ -190,24 +241,36 @@ export default function MetricCards({ result }) {
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               Faithfulness
             </span>
-            <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-mono border border-emerald-500/20">
+            <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-mono border border-emerald-500/20 font-semibold">
               Weight 35%
             </span>
           </div>
 
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="text-3xl font-extrabold text-slate-100 font-mono tracking-tight">
-              {(faithfulness * 100).toFixed(1)}%
-            </span>
-            <span className="text-xs text-slate-400">
-              {details.faithfulness.supported_sentences}/{details.faithfulness.total_sentences} Grounded Claims
-            </span>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <span className="text-3xl font-extrabold text-slate-100 font-mono tracking-tight block">
+                {(faithfulness * 100).toFixed(1)}%
+              </span>
+              <span className="text-[11px] text-slate-400">
+                {details.faithfulness.supported_sentences}/{details.faithfulness.total_sentences} Grounded Claims
+              </span>
+            </div>
+            <MetricCircleIndicator
+              value={faithfulness}
+              colorClass={faithfulness >= 0.7 ? 'stroke-emerald-400' : faithfulness >= 0.4 ? 'stroke-amber-400' : 'stroke-red-400'}
+            />
           </div>
 
-          {/* Progress bar */}
-          <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-3">
+          {/* Subtle Progress Bar */}
+          <div className="w-full bg-slate-950/80 p-0.5 border border-slate-800 rounded-full h-2.5 mb-2.5 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${faithfulness >= 0.7 ? 'bg-emerald-500' : faithfulness >= 0.4 ? 'bg-amber-500' : 'bg-red-500'}`}
+              className={`h-full rounded-full transition-all duration-700 ease-out shadow-sm ${
+                faithfulness >= 0.7
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-400 shadow-emerald-500/20'
+                  : faithfulness >= 0.4
+                  ? 'bg-gradient-to-r from-amber-600 to-yellow-400 shadow-amber-500/20'
+                  : 'bg-gradient-to-r from-red-600 to-rose-400 shadow-red-500/20'
+              }`}
               style={{ width: `${Math.min(100, Math.max(0, faithfulness * 100))}%` }}
             />
           </div>
@@ -224,24 +287,34 @@ export default function MetricCards({ result }) {
               <FileText className="w-4 h-4 text-amber-400" />
               Citation Accuracy
             </span>
-            <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 font-mono border border-amber-500/20">
+            <span className="text-[11px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 font-mono border border-amber-500/20 font-semibold">
               Weight 20%
             </span>
           </div>
 
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="text-3xl font-extrabold text-slate-100 font-mono tracking-tight">
-              {(citation_accuracy * 100).toFixed(1)}%
-            </span>
-            <span className="text-xs text-slate-400">
-              {details.citation_accuracy.valid_citations}/{details.citation_accuracy.total_citations} Valid Inline Tags
-            </span>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <span className="text-3xl font-extrabold text-slate-100 font-mono tracking-tight block">
+                {(citation_accuracy * 100).toFixed(1)}%
+              </span>
+              <span className="text-[11px] text-slate-400">
+                {details.citation_accuracy.valid_citations}/{details.citation_accuracy.total_citations} Valid Inline Tags
+              </span>
+            </div>
+            <MetricCircleIndicator
+              value={citation_accuracy}
+              colorClass={citation_accuracy >= 0.7 ? 'stroke-amber-400' : 'stroke-red-400'}
+            />
           </div>
 
-          {/* Progress bar */}
-          <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-3">
+          {/* Subtle Progress Bar */}
+          <div className="w-full bg-slate-950/80 p-0.5 border border-slate-800 rounded-full h-2.5 mb-2.5 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${citation_accuracy >= 0.7 ? 'bg-amber-500' : 'bg-red-500'}`}
+              className={`h-full rounded-full transition-all duration-700 ease-out shadow-sm ${
+                citation_accuracy >= 0.7
+                  ? 'bg-gradient-to-r from-amber-600 to-yellow-400 shadow-amber-500/20'
+                  : 'bg-gradient-to-r from-red-600 to-rose-400 shadow-red-500/20'
+              }`}
               style={{ width: `${Math.min(100, Math.max(0, citation_accuracy * 100))}%` }}
             />
           </div>

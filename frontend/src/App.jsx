@@ -19,6 +19,34 @@ import InputForm from './components/InputForm'
 import MetricCards from './components/MetricCards'
 import Inspector from './components/Inspector'
 
+// Base API URL configuration:
+// - In production (e.g. deployed to Vercel), set VITE_API_URL to your backend URL (e.g. https://rag-bench-backend.onrender.com).
+// - In local development, if VITE_API_URL is unset, defaults to '' which routes through Vite dev server proxy to http://127.0.0.1:8000.
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
+
+// Helper to provide friendly, actionable error messages especially when backend is unreachable
+const getDetailedError = (err, fallback = 'Operation failed') => {
+  const msg = err?.message || String(err || '')
+  if (
+    msg.includes('Failed to fetch') ||
+    msg.includes('NetworkError') ||
+    msg.includes('Network request failed') ||
+    msg.includes('Load failed')
+  ) {
+    const targetUrl = API_BASE || 'http://127.0.0.1:8000'
+    return {
+      title: 'Backend Server Unreachable',
+      description: `Unable to connect to the evaluation backend API at ${targetUrl}.`,
+      hint: 'Make sure the FastAPI backend is running: python -m uvicorn app:app --host 127.0.0.1 --port 8000 --reload'
+    }
+  }
+  return {
+    title: 'Evaluation Error',
+    description: msg || fallback,
+    hint: null
+  }
+}
+
 export default function App() {
   const [formData, setFormData] = useState({
     query: '',
@@ -29,11 +57,20 @@ export default function App() {
 
   const [evaluationResult, setEvaluationResult] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState(null) // null | { title, description, hint }
+  const [toast, setToast] = useState(null) // null | { message, type }
   const [activeView, setActiveView] = useState('single') // 'single' | 'batch'
   const [batchResult, setBatchResult] = useState(null)
   const [batchLoading, setBatchLoading] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
+
+  // Auto-dismiss toast notification after 4 seconds
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [toast])
 
   // Toggle dark/light theme
   useEffect(() => {
@@ -53,7 +90,7 @@ export default function App() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/preset/${type}`)
+      const res = await fetch(`${API_BASE}/api/preset/${type}`)
       if (!res.ok) throw new Error(`Failed to load preset: ${res.statusText}`)
       const data = await res.json()
       setFormData({
@@ -63,9 +100,13 @@ export default function App() {
         answer: data.preset.answer
       })
       setEvaluationResult(data.evaluation)
+      setToast({
+        message: `Loaded ${type === 'pass' ? 'Pass Scenario' : 'Hallucination Scenario'} preset with pre-calculated metrics.`,
+        type: 'info'
+      })
     } catch (err) {
       console.error(err)
-      setError(err.message || 'Error loading preset')
+      setError(getDetailedError(err, 'Error loading preset'))
     } finally {
       setLoading(false)
     }
@@ -73,18 +114,26 @@ export default function App() {
 
   const handleEvaluate = async () => {
     if (!formData.query.trim()) {
-      setError('Please provide a query')
+      setError({
+        title: 'Validation Error',
+        description: 'Please provide a user query or prompt to evaluate.',
+        hint: null
+      })
       return
     }
     if (!formData.answer.trim()) {
-      setError('Please provide a generated answer to evaluate')
+      setError({
+        title: 'Validation Error',
+        description: 'Please provide a generated RAG answer to evaluate.',
+        hint: null
+      })
       return
     }
 
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/evaluate', {
+      const res = await fetch(`${API_BASE}/api/evaluate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -104,9 +153,13 @@ export default function App() {
 
       const data = await res.json()
       setEvaluationResult(data)
+      setToast({
+        message: `Evaluation Complete! Score: ${Math.round(data.metrics.overall_score * 100)}% (Grade ${data.metrics.grade})`,
+        type: 'success'
+      })
     } catch (err) {
       console.error(err)
-      setError(err.message || 'Failed to complete evaluation')
+      setError(getDetailedError(err, 'Failed to complete evaluation'))
     } finally {
       setLoading(false)
     }
@@ -123,7 +176,7 @@ export default function App() {
     bodyData.append('file', file)
 
     try {
-      const res = await fetch('/api/upload', {
+      const res = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         body: bodyData
       })
@@ -135,12 +188,31 @@ export default function App() {
 
       const data = await res.json()
       setBatchResult(data)
+      setToast({
+        message: `Batch processed: ${data.aggregate.total_samples} samples evaluated!`,
+        type: 'success'
+      })
     } catch (err) {
       console.error(err)
-      setError(err.message || 'Failed to upload batch file')
+      setError(getDetailedError(err, 'Failed to upload and evaluate batch file'))
     } finally {
       setBatchLoading(false)
     }
+  }
+
+  const handleReset = () => {
+    setEvaluationResult(null)
+    setError(null)
+    setFormData({
+      query: '',
+      ground_truth: '',
+      retrieved_chunks: [''],
+      answer: ''
+    })
+    setToast({
+      message: 'Form inputs cleared.',
+      type: 'info'
+    })
   }
 
   return (
@@ -211,19 +283,34 @@ export default function App() {
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
-        {/* Error Alert */}
+        {/* Upgraded Clear Error Alert */}
         {error && (
-          <div className="p-4 rounded-xl bg-red-950/60 border border-red-500/50 text-red-200 text-sm flex items-center justify-between animate-fadeIn">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
-              <span>{error}</span>
+          <div className="p-4 sm:p-5 rounded-2xl bg-red-950/70 border border-red-500/50 text-red-200 text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fadeIn shadow-xl shadow-red-950/30">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-bold text-red-200 text-sm">
+                  {typeof error === 'object' ? error.title : 'Evaluation Notice'}
+                </h4>
+                <p className="text-xs text-red-300/90 mt-0.5 leading-relaxed">
+                  {typeof error === 'object' ? error.description : error}
+                </p>
+                {typeof error === 'object' && error.hint && (
+                  <div className="mt-2 text-[11px] text-red-300 font-mono bg-red-900/40 px-2.5 py-1.5 rounded-lg border border-red-800/60 inline-flex items-center gap-1.5">
+                    <span>💡 Troubleshooting:</span>
+                    <span>{error.hint}</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <button
-              onClick={() => setError(null)}
-              className="text-xs text-red-400 hover:text-red-200 underline"
-            >
-              Dismiss
-            </button>
+            <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+              <button
+                onClick={() => setError(null)}
+                className="px-3 py-1.5 rounded-lg bg-red-900/50 hover:bg-red-800/60 text-red-200 text-xs font-semibold border border-red-700/60 transition-colors"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         )}
 
@@ -236,6 +323,7 @@ export default function App() {
               setFormData={setFormData}
               onEvaluate={handleEvaluate}
               onLoadPreset={loadPreset}
+              onReset={handleReset}
               loading={loading}
             />
 
@@ -392,6 +480,34 @@ export default function App() {
           RAG-Bench • Built for Hacktoberfest & Infinity AI Forge • Pure Software & Deterministic NLP Heuristics
         </p>
       </footer>
+
+      {/* Floating Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-toast flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-900/95 border border-indigo-500/40 text-slate-100 shadow-2xl shadow-indigo-950/50 backdrop-blur-md max-w-md">
+          <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
+            {toast.type === 'success' ? (
+              <CheckCircle className="w-4 h-4 text-emerald-400" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-indigo-400" />
+            )}
+          </div>
+          <div className="flex-grow pr-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-300 block">
+              {toast.type === 'success' ? 'Evaluation Success' : 'System Notice'}
+            </span>
+            <p className="text-xs text-slate-200 mt-0.5 leading-snug">
+              {toast.message}
+            </p>
+          </div>
+          <button
+            onClick={() => setToast(null)}
+            className="flex-shrink-0 text-slate-400 hover:text-slate-200 text-xs p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            title="Dismiss toast"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -26,13 +26,32 @@
 
 /* Subtle glow effects */
 .glow-card {
-  box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.12);
+  box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.18);
 }
 
 .glow-card-green {
-  box-shadow: 0 0 25px -5px rgba(34, 197, 94, 0.15);
+  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
 }
 
 .glow-card-red {
-  box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.15);
+  box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.28);
+}
+
+.glow-card-amber {
+  box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.25);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-toast {
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }

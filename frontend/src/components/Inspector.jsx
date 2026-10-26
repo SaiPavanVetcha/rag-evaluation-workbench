@@ -183,64 +183,87 @@ export default function Inspector({ result }) {
                   key={sent.sentence_id}
                   className={`rounded-xl border p-5 transition-all duration-200 ${
                     isSupported
-                      ? 'border-emerald-500/40 bg-emerald-950/15 hover:border-emerald-500/70 glow-card-green'
-                      : 'border-red-500/50 bg-red-950/20 hover:border-red-500/80 glow-card-red'
+                      ? 'border-l-4 border-l-emerald-500 border-emerald-500/40 bg-gradient-to-r from-emerald-950/20 via-slate-900/70 to-slate-900/50 hover:border-emerald-500/70 glow-card-green'
+                      : 'border-l-4 border-l-red-500 border-red-500/60 bg-gradient-to-r from-red-950/30 via-slate-900/80 to-slate-900/60 hover:border-red-500/80 glow-card-red'
                   }`}
                 >
                   {/* Card Header Bar */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800/80">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
                     <div className="flex items-center gap-2.5 flex-wrap">
-                      <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-xs font-mono font-bold">
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-xs font-mono font-bold">
                         Claim #{sent.sentence_id}
                       </span>
 
                       {/* Grounded vs Hallucination Badge */}
                       {isSupported ? (
-                        <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-semibold">
+                        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold tracking-wide shadow-sm shadow-emerald-950">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                           Grounded in Context
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-500/25 border border-red-500/50 text-red-300 text-xs font-semibold animate-pulse">
+                        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600/30 border border-red-500/70 text-red-200 text-xs font-bold tracking-wide shadow-md shadow-red-950 animate-pulse">
                           <AlertOctagon className="w-3.5 h-3.5 text-red-400" />
                           Hallucination Detected
                         </span>
                       )}
 
-                      {/* Citation Mismatch Tag if present */}
+                      {/* Overlap Percentage Badge */}
+                      <span
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono font-bold text-xs border ${
+                          isSupported
+                            ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-300'
+                            : 'bg-red-950/70 border-red-500/50 text-red-300'
+                        }`}
+                        title="Token overlap with retrieved context (Threshold: 55%)"
+                      >
+                        <span>{Math.round(sent.overlap_score * 100)}% Match</span>
+                        <span className="text-[10px] text-slate-400 font-normal">/ 55% min</span>
+                      </span>
+
+                      {/* Citation Mismatch Tag if present (Yellow / Amber) */}
                       {hasCitationMismatch && (
-                        <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-medium">
+                        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/25 border border-amber-500/60 text-amber-200 text-xs font-bold tracking-wide shadow-sm shadow-amber-950">
                           <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                           Citation Mismatch
                         </span>
                       )}
                     </div>
 
-                    {/* Overlap Score Pill */}
+                    {/* Overlap Visual Meter */}
                     <div className="flex items-center gap-2">
                       <div className="text-right">
                         <span className="text-xs font-mono font-bold text-slate-200">
-                          {Math.round(sent.overlap_score * 100)}% Overlap
+                          {Math.round(sent.overlap_score * 100)}%
                         </span>
                         <span className="text-[10px] text-slate-400 block">
-                          Threshold: 55%
+                          Req: ≥ 55%
                         </span>
                       </div>
-                      <div className="w-16 bg-slate-800 h-2 rounded-full overflow-hidden">
+                      <div className="w-16 bg-slate-950 p-0.5 border border-slate-800 h-2.5 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${isSupported ? 'bg-emerald-500' : 'bg-red-500'}`}
+                          className={`h-full rounded-full transition-all duration-500 ${isSupported ? 'bg-emerald-500' : 'bg-red-500'}`}
                           style={{ width: `${Math.min(100, sent.overlap_score * 100)}%` }}
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* Sentence Text with Inline Highlights */}
+                  {/* Sentence Text */}
                   <div className="py-3">
                     <p className="text-sm sm:text-base text-slate-100 leading-relaxed font-normal">
                       {sent.text}
                     </p>
                   </div>
+
+                  {/* High-visibility Warning Callout for Citation Mismatches */}
+                  {hasCitationMismatch && (
+                    <div className="mt-1 mb-2 p-3 rounded-xl bg-amber-950/35 border border-amber-500/50 text-amber-200 text-xs flex items-center gap-2.5 shadow-inner">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                      <span>
+                        <strong className="font-semibold text-amber-300">Citation Warning:</strong> One or more citations attached to this sentence failed verification (low overlap or out-of-range chunk ID).
+                      </span>
+                    </div>
+                  )}
 
                   {/* Inline Citations in this Sentence */}
                   {sentCitations.length > 0 && (
@@ -252,20 +275,20 @@ export default function Inspector({ result }) {
                       {sentCitations.map((cit, cIdx) => (
                         <span
                           key={cIdx}
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium border ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border ${
                             cit.is_valid
                               ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30'
-                              : 'bg-amber-950/50 text-amber-300 border-amber-500/40'
+                              : 'bg-amber-950/60 text-amber-200 border-2 border-amber-500/70 shadow-sm shadow-amber-500/20'
                           }`}
                         >
                           <span>{cit.citation_tag}</span>
-                          <span className="text-[10px] opacity-75">
-                            {cit.is_valid ? `(Chunk ${cit.chunk_id})` : '(Mismatch)'}
+                          <span className="text-[10px] opacity-80">
+                            {cit.is_valid ? `(Chunk ${cit.chunk_id})` : '(Mismatch!)'}
                           </span>
                           {cit.is_valid ? (
                             <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                           ) : (
-                            <AlertTriangle className="w-3 h-3 text-amber-400" />
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                           )}
                         </span>
                       ))}
@@ -365,12 +388,16 @@ export default function Inspector({ result }) {
                   className={`p-4 rounded-xl border transition-all ${
                     cit.is_valid
                       ? 'bg-slate-900/60 border-slate-800 hover:border-emerald-500/40'
-                      : 'bg-amber-950/15 border-amber-500/40 hover:border-amber-500/70'
+                      : 'border-l-4 border-l-amber-500 bg-amber-950/25 border-amber-500/60 glow-card-amber hover:border-amber-500/80'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 font-mono text-sm font-bold text-amber-300">
+                      <span className={`px-2.5 py-1 rounded-lg border font-mono text-sm font-bold ${
+                        cit.is_valid
+                          ? 'bg-slate-800 border-slate-700 text-amber-300'
+                          : 'bg-amber-950/70 border-amber-500/60 text-amber-200 shadow-sm shadow-amber-500/20'
+                      }`}>
                         {cit.citation_tag}
                       </span>
                       <div>
@@ -384,7 +411,7 @@ export default function Inspector({ result }) {
                               Valid Grounding
                             </span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-semibold border border-amber-500/30 flex items-center gap-1">
+                            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/30 text-amber-200 text-[10px] font-bold border border-amber-500/70 shadow-sm shadow-amber-500/20 flex items-center gap-1">
                               <AlertTriangle className="w-3 h-3 text-amber-400" />
                               Citation Mismatch
                             </span>

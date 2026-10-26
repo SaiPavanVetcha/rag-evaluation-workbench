@@ -5,6 +5,21 @@
 
 ---
 
+## 🌐 Live Demo
+- Frontend: [Add Vercel URL]
+- Backend: [Add Render / Hugging Face URL]
+- API Docs: [Backend URL]/docs
+
+---
+
+## 📸 Screenshots
+![Input Form](docs/screenshots/01-input-form.png)
+![Metric Cards](docs/screenshots/02-metric-cards.png)
+![Inspector](docs/screenshots/03-inspector.png)
+![Batch View](docs/screenshots/04-batch-view.png)
+
+---
+
 ## 🌟 Overview
 
 Evaluating Retrieval-Augmented Generation (RAG) pipelines traditionally relies on costly, non-deterministic LLM-as-a-judge approaches (e.g. GPT-4). These suffer from high latency, API rate limits, non-reproducible grading, and substantial ongoing costs.
@@ -107,10 +122,13 @@ rag-evaluation-workbench/
 │   │   ├── App.jsx               # Main workbench layout & batch runner
 │   │   ├── index.css             # Tailwind CSS & custom design system
 │   │   └── main.jsx              # Application bootstrap
+│   ├── .env.example              # Environment variables template (VITE_API_URL)
 │   ├── package.json
 │   ├── vite.config.js
 │   ├── tailwind.config.js
 │   └── index.html
+├── docs/
+│   └── screenshots/              # UI demo screenshots & previews
 ├── samples/
 │   ├── batch_sample.json   # Ready-to-use sample batch JSON dataset
 │   └── batch_sample.csv    # Ready-to-use sample batch CSV dataset
