@@ -26,14 +26,14 @@ Evaluating Retrieval-Augmented Generation (RAG) pipelines traditionally relies o
                                             v
 +---------------------------------------------------------------------------------------+
 |                                FastAPI Backend Server                                 |
-|     (/api/evaluate, /api/preset/pass, /api/preset/hallucination, /api/upload)          |
+|     (/api/evaluate, /api/preset/pass, /api/preset/hallucination, /api/upload)         |
 +-------------------------------------------+-------------------------------------------+
                                             |
                                             v
 +---------------------------------------------------------------------------------------+
-|                       Deterministic Evaluation Engine (eval_engine.py)               |
+|                       Deterministic Evaluation Engine (eval_engine.py)                |
 |                                                                                       |
-|   1. Tokenizer & Stopword Normalizer (case-folding, punctuation strip, token filter)   |
+|   1. Tokenizer & Stopword Normalizer (case-folding, punctuation strip, token filter)  |
 |   2. Context Recall Engine:           |GT ∩ Retrieved Chunks| / |GT|                  |
 |   3. Context Precision Engine:        |Relevant Chunks (overlap ≥ 25%)| / |Total|     |
 |   4. Sentence Splitter & Grounding:   Claim overlap with all context (threshold ≥ 55%)|
