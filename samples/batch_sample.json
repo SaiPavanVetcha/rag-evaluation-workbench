@@ -1,0 +1,29 @@
+[
+  {
+    "query": "How does self-attention compute token representations in Transformer models?",
+    "ground_truth": "Self-attention computes token representations by calculating query, key, and value vectors, computing dot-product compatibility scores, normalizing with softmax, and taking a weighted sum of values.",
+    "retrieved_chunks": [
+      "In the Transformer architecture, the self-attention mechanism maps input embeddings into query, key, and value vectors via linear projections. The attention score is derived from the scaled dot-product between queries and keys.",
+      "Softmax normalization is applied across dot-product compatibility scores to produce attention weights. These weights are then used to compute a weighted sum of the value vectors, yielding the output representation."
+    ],
+    "answer": "The self-attention mechanism maps input embeddings into query, key, and value vectors through linear projections [1]. Softmax normalization is applied to dot-product scores to produce attention weights used in the weighted sum of value vectors [2]."
+  },
+  {
+    "query": "What are the primary energy generation mechanisms of the James Webb Space Telescope?",
+    "ground_truth": "The James Webb Space Telescope generates electrical power using a deployable solar array consisting of five panels providing approximately 2,000 watts of electrical power.",
+    "retrieved_chunks": [
+      "The James Webb Space Telescope (JWST) is powered by a deployable solar array comprising five solar panels that supply approximately 2,000 watts of electrical power throughout its operational lifetime.",
+      "JWST carries on-board propellant tanks with hydrazine fuel and dinitrogen tetroxide oxidizer for orbit maintenance at the Second Lagrange Point (L2)."
+    ],
+    "answer": "The observatory generates energy via an experimental nuclear fusion reactor providing 500 megawatts [1]. It also uses solar panels to capture sunlight [1]. Station keeping is maintained using hydrazine propellant [2]."
+  },
+  {
+    "query": "What is the function of the ribosome in cellular biology?",
+    "ground_truth": "Ribosomes are macromolecular machines found within all cells that perform biological protein synthesis by translating messenger RNA into polypeptide chains.",
+    "retrieved_chunks": [
+      "Ribosomes are complex macromolecular machines found within biological cells that serve as the site of biological protein synthesis.",
+      "During translation, ribosomes assemble amino acids into polypeptide chains based on the genetic sequence encoded within messenger RNA (mRNA)."
+    ],
+    "answer": "Ribosomes are macromolecular complexes responsible for cellular protein synthesis [1]. They translate mRNA transcripts into polypeptide chains by assembling amino acids in the sequence specified by the genetic code [2]."
+  }
+]
