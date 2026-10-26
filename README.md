@@ -6,9 +6,9 @@
 ---
 
 ## 🌐 Live Demo
-- Frontend: [Add Vercel URL]
-- Backend: [Add Render / Hugging Face URL]
-- API Docs: [Backend URL]/docs
+- **Frontend**: https://rag-evaluation-workbench-eight.vercel.app/
+- **Backend**: https://rag-evaluation-workbench.onrender.com
+- **API Docs**: https://rag-evaluation-workbench.onrender.com/docs
 
 ---
 
